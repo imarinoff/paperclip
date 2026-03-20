@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:17-alpine
+    container_name: paper-clip-db
     environment:
       POSTGRES_USER: paperclip
       POSTGRES_PASSWORD: paperclip
@@ -10,17 +11,18 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
-    ports:
-      - "5432:5432"
+    networks:
+      - easypanel
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   server:
     build: .
-    ports:
-      - "3100:3100"
+    container_name: paper-clip-server
+    networks:
+      - easypanel
     environment:
-      DATABASE_URL: postgres://paperclip:paperclip@db:5432/paperclip
+      DATABASE_URL: postgres://paperclip:paperclip@paper-clip-db:5432/paperclip
       PORT: "3100"
       SERVE_UI: "true"
       PAPERCLIP_DEPLOYMENT_MODE: "authenticated"
@@ -32,7 +34,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+networks:
+  easypanel:
+    external: true
+    
 volumes:
   pgdata:
   paperclip-data:
