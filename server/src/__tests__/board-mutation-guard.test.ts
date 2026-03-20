@@ -65,4 +65,28 @@ describe("boardMutationGuard", () => {
     const res = await request(app).post("/mutate").send({ ok: true });
     expect(res.status).toBe(204);
   });
+
+  it("allows board mutations from PAPERCLIP_PUBLIC_URL origin", async () => {
+    process.env.PAPERCLIP_PUBLIC_URL = "https://paperclip.example.com";
+    try {
+      const app = createApp("board");
+      const res = await request(app)
+        .post("/mutate")
+        .set("Origin", "https://paperclip.example.com")
+        .send({ ok: true });
+      expect(res.status).toBe(204);
+    } finally {
+      delete process.env.PAPERCLIP_PUBLIC_URL;
+    }
+  });
+
+  it("allows board mutations from X-Forwarded-Host origin", async () => {
+    const app = createApp("board");
+    const res = await request(app)
+      .post("/mutate")
+      .set("X-Forwarded-Host", "paperclip.example.com")
+      .set("Origin", "https://paperclip.example.com")
+      .send({ ok: true });
+    expect(res.status).toBe(204);
+  });
 });

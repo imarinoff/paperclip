@@ -23,6 +23,21 @@ function trustedOriginsForRequest(req: Request) {
     origins.add(`http://${host}`.toLowerCase());
     origins.add(`https://${host}`.toLowerCase());
   }
+  const forwardedHost = req.header("x-forwarded-host")?.split(",")[0]?.trim();
+  if (forwardedHost) {
+    origins.add(`http://${forwardedHost}`.toLowerCase());
+    origins.add(`https://${forwardedHost}`.toLowerCase());
+  }
+  const publicUrl = process.env.PAPERCLIP_PUBLIC_URL?.trim();
+  if (publicUrl) {
+    const parsed = parseOrigin(publicUrl);
+    if (parsed) {
+      origins.add(parsed);
+    } else {
+      origins.add(`http://${publicUrl}`.toLowerCase());
+      origins.add(`https://${publicUrl}`.toLowerCase());
+    }
+  }
   return origins;
 }
 
